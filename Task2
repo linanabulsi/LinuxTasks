@@ -1,0 +1,93 @@
+systemctl start httpd
+cd /var/www/html/
+touch disk.html diskinfo.html diskavg.html 
+touch memory.html meminfo.html memavg.html
+touch cpu.html cpuinfo.html cpuavg.html
+------
+cd
+touch disk.txt
+echo "UsedDisk  FreeDisk" >> disk.txt
+cat > /var/www/html/diskinfo.html
+vi scriptt2.sh
+#!/bin/bash
+df | awk ' NR>1  {print $1,$3,$4, systime()}'  >> disk.txt
+df | awk ' NR>1  {print $1,$3,$4, systime()}'  >> /var/www/html/diskinfo.html
+chmod +x scriptt2.sh
+crontab -e
+0 */1 * * * /root/scriptt2.sh
+------
+touch memory.txt
+echo "UsedMem  FreeMem" >> memory.txt
+cat > /var/www/html/meminfo.html
+vi scriptt2m.sh
+#!/bin/bash
+free | awk ' NR == 2 {print $3,$4, systime()}'  >> memory.txt
+free | awk ' NR == 2 {print $3,$4, systime()}'  >> /var/www/html/meminfo.html
+chmod +x scriptt2m.sh
+crontab -e
+0 */1 * * * /root/scriptt2m.sh
+------
+touch cpu.txt
+vi scriptt2c.sh
+#!/bin/bash
+mpstat >> cpu.txt
+mpstat >> /var/www/html/cpuinfo.html
+chmod +x scriptt2c.sh
+crontab -e
+0 */1 * * * /root/scriptt2c.sh
+------
+touch avgdisk.txt
+echo "AvgUsed  AvgFree" >> avgdisk.txt
+cat > /var/www/html/diskavg.html
+vi scriptt2avg.sh
+#!/bin/bash
+count=0;
+total=0;
+totala=0;
+awk 'NR >1 { total += $2; totala+=$3; count++ } END { print total/count "  " totala/count "  " systime() }' disk.txt >> avgdisk.txt
+awk 'NR >1 { total += $2; totala+=$3; count++ } END { print total/count "  " totala/count "  " systime() }' disk.txt >> /var/www/html/diskavg.html
+chmod +x scriptt2avg.sh
+crontab -e
+0 */1 * * * /root/scriptt2avg.sh
+------
+touch avgmem.txt
+echo "UsedAvg  FreeAvg" >> avgmem.txt
+cat > /var/www/html/memavg.html
+vi scriptt2avgm.sh
+#!/bin/bash
+count=0;
+total=0;
+totala=0;
+awk 'NR >1 { total += $1; totala+=$2; count++ } END { print total/count "  " totala/count "  " systime()}' memory.txt >> avgmem.txt
+awk 'NR >1 { total += $1; totala+=$2; count++ } END { print total/count "  " totala/count "  " systime()}' memory.txt >> /var/www/html/memavg.html
+chmod +x scriptt2avgm.sh
+crontab -e
+0 */1 * * * /root/scriptt2avgm.sh
+------
+cd /var/www/html/
+vi index.html
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<a href="cpu.html"> CPU Usage </a></br>
+<a href="mem.html"> Memory Usage </a></br>
+<a href="disk.html"> Disk Usage </a>
+</body>
+</html>
+
+vi disk.html
+<h1>Disk Usage</h1>
+<a href="diskinfo.html"> Disk Informationn </a></br>
+<a href="diskavg.html"> Disk Average </a>
+
+vi mem.html
+<h1>Memory Usage</h1>
+<a href="meminfo.html"> Memory Informationn </a></br>
+<a href="memavg.html"> Memory Average </a>
+
+vi cpu.html
+<h1>CPU Usage</h1>
+<a href="cpuinfo.html"> CPU Informationn </a></br>
+<a href="cpuavg.html"> CPU Average </a>
