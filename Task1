@@ -1,0 +1,135 @@
+part1
+
+pvcreate /dev/sda7 /dev/sda8
+vgcreate -s 16M vg1 /dev/sda7 /dev/sda8
+lvcreate -l 50 -n lvm02                   
+mkfs.ext4 /dev/vg1/lvm02                 
+blkid /dev/vg1/lv1                        
+vim /etc/fstab                             
+mkdir -p /mnt/data                        
+UUID=xxxxxxxx /mnt/data ext4 defaults 0 0
+vim /etc/fstab
+mount -a
+mount
+
+------
+
+part2
+useradd -u 601 user1
+passwd user1
+
+groupadd TrainingGroup
+usermod -a -G TrainingGroup user1
+
+groupadd admin
+useradd -G admin user2
+passwd user2
+useradd -G admin user3
+passwd user3
+visudo
+user3 ALL=(ALL)ALL
+
+------
+
+part3
+ssh-keygen -t rsa -b 4096
+ssh-copy-id root@192.168.205.75
+ssh usr@192.168.205.75
+vi /etc/ssh/sshd_config
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM no
+PermitRootLogin without-password
+systemctl restart sshd
+
+------
+
+Part4
+cp /etc/fstab /var/tmp/
+chgrp admin /var/tmp/fstab
+setfacl -m u:user1:rwx /var/tmp/fstab
+setfacl -m u:user2:--- /var/tmp/fstab
+
+------
+
+part5
+setenforce 1
+vi /etc/selinux/config
+SELINUX=enforcing
+
+------
+
+part6
+vi bgscript.sh
+#!/bin/bash
+pid=$?
+sleep 600
+kill $pid
+./bgscript.sh &
+
+------
+
+part7
+yum -y install tmux
+yum install httpd
+systemctl enable httpd
+systemctl start httpd
+rpm -Uvh https://repo.mysql.com/mysql80-community-release-el7-3.noarch.rpm
+yum install mysql-community-server
+yum install createrepo
+yum install yum-utils
+mkdir -p /var/www/html/rhel7
+createrepo /var/www/html
+wget https://repo.zabbix.com/zabbix/4.4/rhel/7/x86_64/ -P /var/www/html
+mv /etc/yum.repos.d/*.repo /tmp/
+vi /etc/yum.repos.d/local.repo
+[local]
+name=localrepo
+baseurl=file:///var/www/html
+enabled=1
+gpgcheck=0
+yum-config-manager --disable \*
+yum-config-manager --enable local.repo
+yum install zabbix zabbix-web php zabbix-server zabbix-agent
+
+------
+
+part8
+firewall-cmd --zone=public --add-service=http
+firewall-cmd --zone=public --add-service=https
+firewall-cmd --reload
+firewall-cmd --zone=public --permanent --add-service=http
+firewall-cmd --zone=public --permanent --add-service=https
+firewall-cmd --reload
+firewall-cmd --direct --add-rule ipv4 filter INPUT 1 -m tcp --source 192.168.205.82 -p tcp --dport 22 -j REJECT
+firewall-cmd --reload
+
+------
+
+part9
+touch loggedinusers.txt
+touch s
+vi /script9.sh
+#!/bin/bash
+who >> s
+awk '{print $3,$1}' s > loggedinusers.txt
+chmod +x script9.sh
+crontab -e
+30 01 * * * /tmp/script9.sh
+
+------
+
+part10
+yum install MariaDB-server MariaDB-client
+systemctl start mariadb
+iptables -A INPUT -p tcp --dport 3306 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 3306 ! --syn -j ACCEPT
+mysql -u root -p
+CREATE USER 'Lina'@'localhost' IDENTIFIED BY '123'
+GRANT ALL PRIVILEGES ON * . * TO 'Lina'@'localhost'
+FLUSH PRIVILEGES
+CREATE DATABASE IF NOT EXISTS studentdb
+USE studentdb
+CREATE TABLE students ( firstname VARCHAR(15), lastname VARCHAR(15), programs VARCHAR(20), gradyear VARCHAR(15), studentnum VARCHAR(20), PRIMARY KEY(studentnum))
+INSERT INTO students (firstname ,lastname,programs,gradyear,studentnum) VALUES("Allen","Brown","mechanical","2017","110-001")
+INSERT INTO students (firstname ,lastname,programs,gradyear,studentnum) VALUES("Dennis","Green","electrical","2018","110-004")
