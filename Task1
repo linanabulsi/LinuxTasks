@@ -1,7 +1,6 @@
 part1
-
-pvcreate /dev/sda7 /dev/sda8
-vgcreate -s 16M vg1 /dev/sda7 /dev/sda8
+pvcreate /dev/sdb1 /dev/sdb2
+vgcreate -s 16M vg1 /dev/sdb1 /dev/sdb2
 lvcreate -l 50 -n lvm02                   
 mkfs.ext4 /dev/vg1/lvm02                 
 blkid /dev/vg1/lv1                        
@@ -32,15 +31,12 @@ user3 ALL=(ALL)ALL
 ------
 
 part3
-ssh-keygen -t rsa -b 4096
-ssh-copy-id root@192.168.205.75
-ssh usr@192.168.205.75
 vi /etc/ssh/sshd_config
-PasswordAuthentication no
-ChallengeResponseAuthentication no
-UsePAM no
-PermitRootLogin without-password
+PasswordAuthentication yes
 systemctl restart sshd
+ssh-keygen -t rsa -b 4096
+ssh-copy-id 192.168.205.82
+ssh 192.168.205.82
 
 ------
 
